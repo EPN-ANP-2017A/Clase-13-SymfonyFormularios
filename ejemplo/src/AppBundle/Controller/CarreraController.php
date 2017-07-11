@@ -3,93 +3,134 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Carrera;
-use AppBundle\Form\CarreraType;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * Carrera controller.
+ *
+ * @Route("carrera")
+ */
 class CarreraController extends Controller
 {
-	/**
-	 * @Route("/carrera/crear", name="nueva_carrera")
-	 * @param Request $request
-	 *
-	 * @return \Symfony\Component\HttpFoundation\RedirectResponse|Response
-	 */
-	public function crearAction(Request $request)
-	{
-		$carrera = new Carrera();
-		$form = $this->createForm(CarreraType::class, $carrera);
+    /**
+     * Lists all carrera entities.
+     *
+     * @Route("/", name="carrera_index")
+     * @Method("GET")
+     */
+    public function indexAction()
+    {
+        $em = $this->getDoctrine()->getManager();
 
-		$form->handleRequest($request);
+        $carreras = $em->getRepository('AppBundle:Carrera')->findAll();
 
-		if ($form->isSubmitted() && $form->isValid()) {
-			$carrera = $form->getData();
+        return $this->render('carrera/index.html.twig', array(
+            'carreras' => $carreras,
+        ));
+    }
 
-			$em = $this->getDoctrine()->getManager();
-			$em->persist($carrera);
-			$em->flush();
+    /**
+     * Creates a new carrera entity.
+     *
+     * @Route("/nuevo", name="carrera_new")
+     * @Method({"GET", "POST"})
+     */
+    public function newAction(Request $request)
+    {
+        $carrera = new Carrera();
+        $form = $this->createForm('AppBundle\Form\CarreraType', $carrera);
+        $form->handleRequest($request);
 
-			return $this->redirectToRoute('ver_carrera', array(
-				'idCarrera' => $carrera->getId()
-			));
-		}
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($carrera);
+            $em->flush();
 
-		return $this->render('AppBundle:Carrera:crear.html.twig', array(
-			'form' => $form->createView(),
-		));
-	}
+            return $this->redirectToRoute('carrera_show', array('id' => $carrera->getId()));
+        }
 
-	/**
-	 * @Route("/carrera/ver/{idCarrera}", name="ver_carrera")
-	 */
-	public function verAction($idCarrera)
-	{
-		$carrera = $this->getDoctrine()
-		                ->getRepository('AppBundle:Carrera')
-		                ->find($idCarrera);
-		$mensaje = '';
-		if (!$carrera) {
-			$mensaje = 'No existe una carrera con el id ' . $idCarrera;
-		}
+        return $this->render('carrera/new.html.twig', array(
+            'carrera' => $carrera,
+            'form' => $form->createView(),
+        ));
+    }
 
+    /**
+     * Finds and displays a carrera entity.
+     *
+     * @Route("/{id}", name="carrera_show")
+     * @Method("GET")
+     */
+    public function showAction(Carrera $carrera)
+    {
+        $deleteForm = $this->createDeleteForm($carrera);
 
-		return $this->render('AppBundle:Carrera:ver.html.twig', array(
-			'mensaje' => $mensaje,
-			'carrera' => $carrera
-		));
-	}
+        return $this->render('carrera/show.html.twig', array(
+            'carrera' => $carrera,
+            'delete_form' => $deleteForm->createView(),
+        ));
+    }
 
-	/**
-	 * @Route("/carrera/editar")
-	 */
-	public function editarAction()
-	{
-		return $this->render('AppBundle:Carrera:editar.html.twig', array(
-			// ...
-		));
-	}
+    /**
+     * Displays a form to edit an existing carrera entity.
+     *
+     * @Route("/{id}/edit", name="carrera_edit")
+     * @Method({"GET", "POST"})
+     */
+    public function editAction(Request $request, Carrera $carrera)
+    {
+        $deleteForm = $this->createDeleteForm($carrera);
+        $editForm = $this->createForm('AppBundle\Form\CarreraType', $carrera);
+        $editForm->handleRequest($request);
 
-	/**
-	 * @Route("/carrera/listar")
-	 */
-	public function listarAction()
-	{
-		return $this->render('AppBundle:Carrera:listar.html.twig', array(
-			// ...
-		));
-	}
+        if ($editForm->isSubmitted() && $editForm->isValid()) {
+            $this->getDoctrine()->getManager()->flush();
 
-	/**
-	 * @Route("/carrera/eliminar")
-	 */
-	public function eliminarAction()
-	{
-		return $this->render('AppBundle:Carrera:eliminar.html.twig', array(
-			// ...
-		));
-	}
+            return $this->redirectToRoute('carrera_edit', array('id' => $carrera->getId()));
+        }
 
+        return $this->render('carrera/edit.html.twig', array(
+            'carrera' => $carrera,
+            'edit_form' => $editForm->createView(),
+            'delete_form' => $deleteForm->createView(),
+        ));
+    }
+
+    /**
+     * Deletes a carrera entity.
+     *
+     * @Route("/{id}", name="carrera_delete")
+     * @Method("DELETE")
+     */
+    public function deleteAction(Request $request, Carrera $carrera)
+    {
+        $form = $this->createDeleteForm($carrera);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($carrera);
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('carrera_index');
+    }
+
+    /**
+     * Creates a form to delete a carrera entity.
+     *
+     * @param Carrera $carrera The carrera entity
+     *
+     * @return \Symfony\Component\Form\Form The form
+     */
+    private function createDeleteForm(Carrera $carrera)
+    {
+        return $this->createFormBuilder()
+            ->setAction($this->generateUrl('carrera_delete', array('id' => $carrera->getId())))
+            ->setMethod('DELETE')
+            ->getForm()
+        ;
+    }
 }
