@@ -3,46 +3,47 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Carrera;
+use AppBundle\Form\CarreraType;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class CarreraController extends Controller
 {
-    /**
-     * @Route("/carrera/crear")
-     */
-    public function crearAction()
-    {
-	    $carrera = new Carrera();
-	    $carrera->setNombre('ASA');
-	    $carrera->setDescripcion('Agua y Saneamiento Ambiental');
+	/**
+	 * @Route("/carrera/crear", name="nueva_carrera")
+	 * @param Request $request
+	 *
+	 * @return \Symfony\Component\HttpFoundation\RedirectResponse|Response
+	 */
+	public function crearAction(Request $request)
+	{
+		$carrera = new Carrera();
+		$form = $this->createForm(CarreraType::class, $carrera);
 
-	    $em = $this->getDoctrine()->getManager();
+		$form->handleRequest($request);
 
-	    $mensaje = '';
-	    try {
-		    // tells Doctrine you want to (eventually) save the Product (no queries yet)
-		    $em->persist( $carrera );
+		if ($form->isSubmitted() && $form->isValid()) {
+			$carrera = $form->getData();
 
-		    // actually executes the queries (i.e. the INSERT query)
-		    $em->flush();
+			$em = $this->getDoctrine()->getManager();
+			$em->persist($carrera);
+			$em->flush();
 
-		    $mensaje = 'Se ha creado la carrera con id' . $carrera->getId();
+			return $this->redirectToRoute('ver_carrera', array(
+				'idCarrera' => $carrera->getId()
+			));
+		}
 
-	    } catch (UniqueConstraintViolationException $exception) {
-	    	$mensaje = 'Ya existe una carrera con el nombre ' . $carrera->getNombre();
-	    }
-//	    return new Response('Se creó una nueva carrera con id ' . $carrera->getId());
-
-        return $this->render('AppBundle:Carrera:crear.html.twig', array(
-            'mensaje' => $mensaje
-        ));
-    }
+		return $this->render('AppBundle:Carrera:crear.html.twig', array(
+			'form' => $form->createView(),
+		));
+	}
 
 	/**
-	 * @Route("/carrera/ver/{idCarrera}")
+	 * @Route("/carrera/ver/{idCarrera}", name="ver_carrera")
 	 */
 	public function verAction($idCarrera)
 	{
@@ -61,34 +62,34 @@ class CarreraController extends Controller
 		));
 	}
 
-    /**
-     * @Route("/carrera/editar")
-     */
-    public function editarAction()
-    {
-        return $this->render('AppBundle:Carrera:editar.html.twig', array(
-            // ...
-        ));
-    }
+	/**
+	 * @Route("/carrera/editar")
+	 */
+	public function editarAction()
+	{
+		return $this->render('AppBundle:Carrera:editar.html.twig', array(
+			// ...
+		));
+	}
 
-    /**
-     * @Route("/carrera/listar")
-     */
-    public function listarAction()
-    {
-        return $this->render('AppBundle:Carrera:listar.html.twig', array(
-            // ...
-        ));
-    }
+	/**
+	 * @Route("/carrera/listar")
+	 */
+	public function listarAction()
+	{
+		return $this->render('AppBundle:Carrera:listar.html.twig', array(
+			// ...
+		));
+	}
 
-    /**
-     * @Route("/carrera/eliminar")
-     */
-    public function eliminarAction()
-    {
-        return $this->render('AppBundle:Carrera:eliminar.html.twig', array(
-            // ...
-        ));
-    }
+	/**
+	 * @Route("/carrera/eliminar")
+	 */
+	public function eliminarAction()
+	{
+		return $this->render('AppBundle:Carrera:eliminar.html.twig', array(
+			// ...
+		));
+	}
 
 }
