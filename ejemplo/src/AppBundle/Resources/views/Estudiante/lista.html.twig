@@ -1,0 +1,33 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}AppBundle:Estudiante:lista{% endblock %}
+
+{% block body %}
+<h1>Welcome to the Estudiante:lista page</h1>
+
+
+{% if carrera == "TODAS" %}
+    <ul>
+    {% for carrera, estudiantes in lista_estudiantes %}
+        <li>
+            {{ carrera }}
+            <ul>
+            {% for estudiante in estudiantes %}
+                <li>{{ estudiante }}</li>
+            {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <h2>Carrera: {{ carrera }}</h2>
+<ul>
+    {% for estudiante in lista_estudiantes %}
+        <li>{{ estudiante }}</li>
+    {% else %}
+        <li>No hay estudiantes</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

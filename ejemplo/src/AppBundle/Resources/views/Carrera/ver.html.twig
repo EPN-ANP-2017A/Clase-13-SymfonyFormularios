@@ -1,0 +1,13 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}AppBundle:Carrera:ver{% endblock %}
+
+{% block body %}
+<h1>Welcome to the Carrera:ver page</h1>
+
+    <h2>{{ mensaje }}</h2>
+
+    <label>Nombre:</label>{{ carrera.nombre }}
+    <label>Descripción:</label>{{ carrera.descripcion }}
+
+{% endblock %}
